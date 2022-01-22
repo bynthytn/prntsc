@@ -1,2 +1,7 @@
 page.htm
-files
+__pycache__/*
+htmls/*
+images/*
+image.jpg
+image_name.jpg
+TODO.md

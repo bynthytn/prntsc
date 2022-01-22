@@ -1,8 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
+from generator import generate_id, generate_image_path, generate_html_url, generate_html_path
 
-
-def get_url_from_html(html_path):
+def get_src_url_from_html(html_path):
 
     # открываем файл и парсим супом
     with open(html_path) as file:
@@ -23,21 +23,35 @@ def download_file(url, path_to_save):
         Ежели ссылка оканчивается на jpg, jpeg, png и подобные форматы,
         файл сохранится в качестве байтов (с использованием режима wb)."""
 
-    mode = 'w'
     if url.endswith(('jpg', 'png', 'jpeg')):
-        mode += 'b'
-        data = requests.get(url, headers={'User-Agent': 'Felix'}).content
-        with open(path_to_save, mode) as file:
-            file.write(data)
+        mode = 'wb'
+        encoding = None
+        attr = 'content'
     else:
-        data = requests.get(url, headers={'User-Agent': 'Felix'}).text
-        with open(path_to_save, mode, encoding="utf-8") as file:
-            file.write(data)
+        mode = 'w'
+        encoding = 'utf-8'
+        attr = 'text'
 
-"""
-html
-body
-<div class="image-constrain js-image-wrap">
-<div class="image-container image__pic js-image-pic">
-<img class="no-click screenshot-image"
- """
+    request = requests.get(url, headers={'User-Agent': 'Felix'})
+    data = getattr(request, attr)
+
+    with open(path_to_save, mode, encoding=encoding) as file:
+        file.write(data)
+
+def download_random_image():
+    image_id = generate_id()
+
+    print(f'Working with: {image_id=}')
+    html_path = generate_html_path(image_id)
+    image_path = generate_image_path(image_id)
+
+    html_url = generate_html_url(image_id)
+    print(f'Downloading html from {html_url} to {html_path}')
+    download_file(html_url, html_path)
+    image_url = get_src_url_from_html(html_path)
+    print(f'Got source image url: {image_url}')
+    print(f'Downloading image from {image_url} to {image_path}')
+    download_file(image_url, image_path)
+    
+
+download_random_image()
