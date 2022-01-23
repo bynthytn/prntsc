@@ -1,6 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
-from generator import generate_id, generate_image_path, generate_html_url, generate_html_path
+from loguru import logger
+
+import logger_config
+from generator import (generate_html_path, generate_html_url, generate_id,
+                       generate_image_path)
+
 
 def get_src_url_from_html(html_path):
 
@@ -40,18 +45,35 @@ def download_file(url, path_to_save):
 
 def download_random_image():
     image_id = generate_id()
+    logger.info(f'Working with: {image_id=}')
 
-    print(f'Working with: {image_id=}')
     html_path = generate_html_path(image_id)
     image_path = generate_image_path(image_id)
-
     html_url = generate_html_url(image_id)
-    print(f'Downloading html from {html_url} to {html_path}')
-    download_file(html_url, html_path)
-    image_url = get_src_url_from_html(html_path)
-    print(f'Got source image url: {image_url}')
-    print(f'Downloading image from {image_url} to {image_path}')
-    download_file(image_url, image_path)
-    
 
-download_random_image()
+    logger.info(f'Downloading html from {html_url} to {html_path}')
+    download_file(html_url, html_path)
+
+    image_url = get_src_url_from_html(html_path)
+    logger.info(f'Got source image url: {image_url}')
+
+    response = requests.get(image_url, stream=True, headers={'User-Agent': 'Marina'})
+    if response.status_code in (403, 520):
+        logger.error(f'Status code: {response.status_code}')
+        logger.error('Retrying...')
+        return download_random_image()
+
+    size_bytes = response.headers['Content-length']
+    if size_bytes in ('543', '503'):
+        logger.error(f'Image rejected (size is 543 or 503 bytes, probably broken)')
+        logger.error('Retrying...')
+        return download_random_image()
+
+    logger.info(f'Downloading image from {image_url} to {image_path}')
+    download_file(image_url, image_path)
+
+while True:
+    try:
+        download_random_image()
+    except KeyboardInterrupt:
+        exit()
