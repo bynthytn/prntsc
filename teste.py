@@ -14,4 +14,3 @@ response = requests.get(url, stream=True, headers={'User-Agent': 'Mariya'})
 # print(response.content)
 pprint(response.headers['Content-length'])
 pprint(type(response.status_code))
-
