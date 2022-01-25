@@ -45,17 +45,23 @@ def download_file(url, path_to_save):
 
 def download_random_image():
     image_id = generate_id()
+    logger.info('___________')
     logger.info(f'Working with: {image_id=}')
 
     html_path = generate_html_path(image_id)
     image_path = generate_image_path(image_id)
     html_url = generate_html_url(image_id)
 
-    logger.info(f'Downloading html from {html_url} to {html_path}')
+    logger.debug(f'Downloading html from {html_url} to {html_path}')
     download_file(html_url, html_path)
 
     image_url = get_src_url_from_html(html_path)
-    logger.info(f'Got source image url: {image_url}')
+    logger.debug(f'Got source image url: {image_url}')
+
+    if image_url.startswith('//'):
+        logger.error('URL starts with //, probably removed')
+        logger.error('Retrying...')
+        return download_random_image()
 
     response = requests.get(image_url, stream=True, headers={'User-Agent': 'Marina'})
     if response.status_code in (403, 520):
@@ -69,11 +75,7 @@ def download_random_image():
         logger.error('Retrying...')
         return download_random_image()
 
-    logger.info(f'Downloading image from {image_url} to {image_path}')
+    logger.debug(f'Downloading image from {image_url} to {image_path}')
     download_file(image_url, image_path)
 
-while True:
-    try:
-        download_random_image()
-    except KeyboardInterrupt:
-        exit()
+    return image_path
