@@ -9,7 +9,7 @@ format = (
 
 logger.add(
     sys.stdout,
-    level="TRACE",
+    level="INFO",
     format=format,
     colorize=True,
     enqueue=True,
