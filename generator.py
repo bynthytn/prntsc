@@ -38,6 +38,3 @@ def generate_html_url(image_id=None):
         image_id = generate_id()
     url = base_url + image_id
     return url
-
-
-
