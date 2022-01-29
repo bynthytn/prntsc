@@ -59,7 +59,6 @@ class Html(Downloadable):
                     return self.source_url
 
 
-
 class Image:
     def __init__(self):
         self.id = self.generate_id()
